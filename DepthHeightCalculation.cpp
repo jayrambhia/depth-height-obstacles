@@ -34,24 +34,24 @@ int getHeight(Mat H,int ch, Point i, Point f);
 bool myobject (DMatch i,DMatch j)
 { 
     // Does sorting based on the Hessian distance shown by i.distance
-	return (i.distance<j.distance);
+    return (i.distance<j.distance);
 }
 
 
 int depth_height_calc(Mat leftImg, Mat rightImg) 
 {
     // m1 is a vector of type DMatch which contains matches 
-	vector< DMatch > m1;
+    vector< DMatch > m1;
 
-	// Clock variables to measure time
-	clock_t s1, s2, s3, s4, start, \
+    // Clock variables to measure time
+    clock_t s1, s2, s3, s4, start, \
             end, end2, end3, end4, end5, end6, end7, end8;
-	
+    
     // number of matches to be considered finally. Explained in detail ahead
-	int number_of_matches = 10;
+    int number_of_matches = 10;
 
-	start = clock();	// Start clock
-	
+    start = clock();    // Start clock
+    
     /**************RECTIFY IMAGES***************/
 
     /* remap is used to rectify captured images using the extrinsic
@@ -60,45 +60,45 @@ int depth_height_calc(Mat leftImg, Mat rightImg)
      * img_right_remap.
      */
 
-	remap(leftImg, img_left_remap, rmap[0][0], rmap[0][1], CV_INTER_LINEAR);
-	remap(rightImg, img_right_remap, rmap[1][0], rmap[1][1], CV_INTER_LINEAR);
+    remap(leftImg, img_left_remap, rmap[0][0], rmap[0][1], CV_INTER_LINEAR);
+    remap(rightImg, img_right_remap, rmap[1][0], rmap[1][1], CV_INTER_LINEAR);
 
-	end2=clock()-(start);	//time taken to rectify images is stored in end2.
-	printf("Rectification Time Taken=%f msec\n",(((double)end2/CLOCKS_PER_SEC)*1000.00));
+    end2=clock()-(start);   //time taken to rectify images is stored in end2.
+    printf("Rectification Time Taken=%f msec\n",(((double)end2/CLOCKS_PER_SEC)*1000.00));
 
 
-    /**************FAST FEATURE DETECTION***************/	
-	
+    /**************FAST FEATURE DETECTION***************/   
+    
     // keypoints are stored in keypoints_1 and keypoints_2.
-	detector.detect(img_left_remap, keypoints_1);
-	detector.detect(img_right_remap, keypoints_2);
-	
+    detector.detect(img_left_remap, keypoints_1);
+    detector.detect(img_right_remap, keypoints_2);
+    
     // time taken for Fast feature extraction
-	end3=clock()-(end2+start);
-	printf("Detector Time Taken=%f msec\n",(((double)end3/CLOCKS_PER_SEC)*1000.00));
-	
+    end3=clock()-(end2+start);
+    printf("Detector Time Taken=%f msec\n",(((double)end3/CLOCKS_PER_SEC)*1000.00));
+    
 
     /**************DESCRIPTOR EXTRACTION FROM FEATURE POINTS***************/
-	
-	ex.compute(img_left_remap, keypoints_1, descriptors_1);
-	ex.compute(img_right_remap, keypoints_2, descriptors_2);
-	
+    
+    ex.compute(img_left_remap, keypoints_1, descriptors_1);
+    ex.compute(img_right_remap, keypoints_2, descriptors_2);
+    
     // time taken for descriptor extraction
-	end4=clock()-(end3+end2+start);
-	printf("Extraction Time Taken=%f msec\n",(((double)end4/CLOCKS_PER_SEC)*1000.00));
+    end4=clock()-(end3+end2+start);
+    printf("Extraction Time Taken=%f msec\n",(((double)end4/CLOCKS_PER_SEC)*1000.00));
 
 
     /***************BRUTE FORCE HAMMING FEATURE MATCHING****************/
-		
-	// BruteForceMatcher<Hamming> matcher;
-	BFMatcher matcher(NORM_HAMMING2, false);
-	vector< DMatch > matches; // Creating a vector of DMatch to hold the matches
+        
+    // BruteForceMatcher<Hamming> matcher;
+    BFMatcher matcher(NORM_HAMMING2, false);
+    vector< DMatch > matches; // Creating a vector of DMatch to hold the matches
     // this statement does the matching
-	matcher.match( descriptors_1, descriptors_2, matches );
+    matcher.match( descriptors_1, descriptors_2, matches );
 
-	
-	end5=clock()-(end4+end3+end2+start); // time taken for flann based matching
-	printf("Good Match extraction Time Taken=%f msec\n",(((double)end5/CLOCKS_PER_SEC)*1000.00));
+    
+    end5=clock()-(end4+end3+end2+start); // time taken for flann based matching
+    printf("Good Match extraction Time Taken=%f msec\n",(((double)end5/CLOCKS_PER_SEC)*1000.00));
 
 
     /************SORTING OF MATCHES ACCORDING TO HESSIAN DISTANCES************/
@@ -111,68 +111,68 @@ int depth_height_calc(Mat leftImg, Mat rightImg)
      */
 
     // using quicksort from the <alogrithm> header file
-	sort(matches.begin(),matches.end(),myobject);
-	
-	// Logic to avoid segmentation faults.
-	if(number_of_matches > matches.size())
-	{
-		number_of_matches = matches.size();
-	}
+    sort(matches.begin(),matches.end(),myobject);
+    
+    // Logic to avoid segmentation faults.
+    if(number_of_matches > matches.size())
+    {
+        number_of_matches = matches.size();
+    }
 
-	// good_matches is a refined vector containing only useful matches
-	vector< DMatch > sort_matches;
-	for(int i = 0; i < number_of_matches ; i++)
-	{
-		sort_matches.push_back(matches[i]);
-	}
-	
-	end6=clock()-(end5+end4+end3+end2+start); // time taken to get the good matches
-	printf("Sorting Time Taken=%f msec\n",(((double)end6/CLOCKS_PER_SEC)*1000.00));
+    // good_matches is a refined vector containing only useful matches
+    vector< DMatch > sort_matches;
+    for(int i = 0; i < number_of_matches ; i++)
+    {
+        sort_matches.push_back(matches[i]);
+    }
+    
+    end6=clock()-(end5+end4+end3+end2+start); // time taken to get the good matches
+    printf("Sorting Time Taken=%f msec\n",(((double)end6/CLOCKS_PER_SEC)*1000.00));
 
 
     /************DISCARD BAD MATCHES*******************/
-	
-	std::vector< DMatch > good_matches;
-	for(int i = 0; i < number_of_matches ; i++)
-	{
-		if(abs(keypoints_1[sort_matches[i].queryIdx].pt.y-keypoints_2[sort_matches[i].trainIdx].pt.y)<20)
-		{
-			good_matches.push_back(sort_matches[i]);
-		}
-	}
+    
+    std::vector< DMatch > good_matches;
+    for(int i = 0; i < number_of_matches ; i++)
+    {
+        if(abs(keypoints_1[sort_matches[i].queryIdx].pt.y-keypoints_2[sort_matches[i].trainIdx].pt.y)<20)
+        {
+            good_matches.push_back(sort_matches[i]);
+        }
+    }
 
     /************DEPTH CALCULATION********************/
 
     // depth is a array of size equal to number of matches in good_matches.
     // It contains depths of all these matches.
-	double depth[good_matches.size()];
+    double depth[good_matches.size()];
     // image containing depths of matches in good_matches
-	Mat depthimg=img_left_remap.clone();
-	s1=clock();	
-	for(i=0;i<good_matches.size();i++)
-	{
-		disparity_pixel =  abs(keypoints_1[good_matches[i].queryIdx ].pt.x-keypoints_2[ good_matches[i].trainIdx ].pt.x);	//disparity_pixel contains the difference between x coordinates of good_matches points in both images img_left_remap and img_right_remap.
-		distance_mm = baseline_mm * focal_length_pixel*0.44*1.46/(2*1000*disparity_pixel);	//The formula is applied to get depths. The extra numerals in the formula appear because the formula was tempered with to scale up or down the results to get exact depths.
-		depth[i]=distance_mm; // distance of ith match is stored in depth[i]
-			
-		sprintf(text,"%lf",distance_mm);
-		putText(depthimg,text,Point2f(keypoints_1[good_matches[i].queryIdx].pt.x,keypoints_1[good_matches[i].queryIdx].pt.y),FONT_HERSHEY_COMPLEX_SMALL,0.5,cvScalar(0,0,0),1,CV_AA);
-		circle(depthimg, Point2f(keypoints_1[good_matches[i].queryIdx].pt.x, keypoints_1[good_matches[i].queryIdx].pt.y), 10, Scalar(0,0,255), 1, 8, 0);
-	}
-	
-	
-	end7=clock()-s1;	// time taken to get depths of all the matches and writing them onto an image
-	printf("Depth Time Taken=%f msec\n",(((double)end7/CLOCKS_PER_SEC)*1000.00));
-	//imshow("Depth of obstacles",depthimg);
+    Mat depthimg=img_left_remap.clone();
+    s1=clock(); 
+    for(i=0;i<good_matches.size();i++)
+    {
+        disparity_pixel =  abs(keypoints_1[good_matches[i].queryIdx ].pt.x-keypoints_2[ good_matches[i].trainIdx ].pt.x);   //disparity_pixel contains the difference between x coordinates of good_matches points in both images img_left_remap and img_right_remap.
+        distance_mm = baseline_mm * focal_length_pixel*0.44*1.46/(2*1000*disparity_pixel);  //The formula is applied to get depths. The extra numerals in the formula appear because the formula was tempered with to scale up or down the results to get exact depths.
+        depth[i]=distance_mm; // distance of ith match is stored in depth[i]
+            
+        sprintf(text,"%lf",distance_mm);
+        putText(depthimg,text,Point2f(keypoints_1[good_matches[i].queryIdx].pt.x,keypoints_1[good_matches[i].queryIdx].pt.y),FONT_HERSHEY_COMPLEX_SMALL,0.5,cvScalar(0,0,0),1,CV_AA);
+        circle(depthimg, Point2f(keypoints_1[good_matches[i].queryIdx].pt.x, keypoints_1[good_matches[i].queryIdx].pt.y), 10, Scalar(0,0,255), 1, 8, 0);
+    }
+    
+    
+    end7=clock()-s1;    // time taken to get depths of all the matches and writing them onto an image
+    printf("Depth Time Taken=%f msec\n",(((double)end7/CLOCKS_PER_SEC)*1000.00));
+    //imshow("Depth of obstacles",depthimg);
 
     /**************HEIGHT CALCULATION******************/
 
-	Mat hedisp=img_left_remap.clone(); // calculated heights are shown in hedisp at the end of this segment
+    Mat hedisp=img_left_remap.clone(); // calculated heights are shown in hedisp at the end of this segment
     // he is a array of size of good_matches and contains the heights of all the matches
-	double he[good_matches.size()];
-	int ch=5;	// camera height
-	s2=clock();
-	for(i=0; i<good_matches.size();i++)
+    double he[good_matches.size()];
+    int ch=5;   // camera height
+    s2=clock();
+    for(i=0; i<good_matches.size();i++)
     {
         // Height of all ith match of good_matches is calculated by passing
         // it as an argument to getHeight along with the homography matrix
@@ -181,7 +181,8 @@ int depth_height_calc(Mat leftImg, Mat rightImg)
                            keypoints_1[good_matches[i].queryIdx].pt.y), 
                            Point2f(keypoints_2[good_matches[i].trainIdx ].pt.x,
                            keypoints_2[good_matches[i].trainIdx].pt.y));
-		he[i]=height;	// height of ith match stored in he[i]
+        // height of ith match stored in he[i]
+        he[i]=height;
         string s;
         ostringstream convert;
         convert.precision(3);
@@ -190,35 +191,45 @@ int depth_height_calc(Mat leftImg, Mat rightImg)
         putText(hedisp, s, Point2f(keypoints_1[good_matches[i].queryIdx ].pt.x,
                 keypoints_1[good_matches[i].queryIdx].pt.y),
                 FONT_HERSHEY_COMPLEX, 0.5, (0, 0, 255));
-	    }
+    }
+    // time taken to estimate heights of all matches in good_matches and display them on the image hedisp
+    end8=clock()-s2;
+    printf("Height Time Taken=%f msec\n",(((double)end8/CLOCKS_PER_SEC)*1000.00));
+    //imshow("heights of obstacles",hedisp); 
 
-	end8=clock()-s2;	// time taken to estimate heights of all matches in good_matches and display them on the image hedisp
-	printf("Height Time Taken=%f msec\n",(((double)end8/CLOCKS_PER_SEC)*1000.00));
-	//imshow("heights of obstacles",hedisp); 
+    /************ALGORITHM TO AVOID OBSTALCES BASED ON**********************/ 
+    /************ INFORMATION OBTAINED FROM HEIGHTS AND DEPTHS**************/
 
-    /************ALGORITHM TO AVOID OBSTALCES BASED ON INFORMATION OBTAINED FROM HEIGHTS AND DEPTHS**************/
-
-	obcount=0;	// number of obstacles initialized to zero
-	for(i=0	;i<good_matches.size();i++)
-	{
-	//	printf("%lf -----------> %lf\n",depth[i],he[i]);	//print the depths and heights just to keep a check
-		if(he[i]>=3)	// heights of obstacles if greater than 2 are considered. If heights < 3 then they are either glares or textures or may be even bottom points of obstacles - PROBLEM TO BE CONCERNED ABOUT!!!
-		{
-			if(depth[i]<1)	// if distance is less than 1 meter than it is to be treated as an obstacle
-			{
-				obcount++;	// Number of obstacles are incremented
-			}
-		}
-	}
-
-	end=clock()-start;	// time taken for whole code to run
-	printf("Time Taken=%f msec\n",(((double)end/CLOCKS_PER_SEC)*1000.00));
-
-	if(obcount>2)	// Obcount is kept because sometimes due to poor matching results, some faraway objects might be considered to be obstacles. But more than 1 of such matches is very less probable.
-	{
-		printf("OBSTACLES AHEAD\n");
-		return 1;	
-	}
+    obcount=0;  // number of obstacles initialized to zero
+    for(i=0 ;i<good_matches.size();i++)
+    {
+        // print the depths and heights just to keep a check
+        // printf("%lf -----------> %lf\n",depth[i],he[i]);
+        // heights of obstacles if greater than 2 are considered.
+        // If heights < 3 then they are either glares or textures 
+        // or may be even bottom points of obstacles - 
+        // PROBLEM TO BE CONCERNED ABOUT!!!
+        if(he[i]>=3)
+        {
+            // if distance is less than 1 meter than it is to be treated as an obstacle
+            if(depth[i]<1)
+            {
+                // Number of obstacles are incremented
+                obcount++;
+            }
+        }
+    }
+    // time taken for whole code to run
+    end=clock()-start;
+    printf("Time Taken=%f msec\n",(((double)end/CLOCKS_PER_SEC)*1000.00));
+    // Obcount is kept because sometimes due to poor matching results, 
+    // some faraway objects might be considered to be obstacles.
+    // But more than 1 of such matches is very less probable.
+    if(obcount>2)
+    {
+        printf("OBSTACLES AHEAD\n");
+        return 1;   
+    }
 
 return 0;
 }
@@ -259,25 +270,25 @@ int getHeight(Mat H, int ch, Point i, Point f)
 {
     // newH will contain the homography matrix of plane at a
     // height 'h' from the ground and parallel to it.
-	Mat newH;
+    Mat newH;
     // h is a varaible height, height is returned as variable height
-	int h=0, height=0, diff=0;
-	int mindiff = 1000;
+    int h=0, height=0, diff=0;
+    int mindiff = 1000;
     // maxh is the maximum height till which detection is done in centimeters
-	int maxh=100;
-	int test;    
+    int maxh=100;
+    int test;   
     // (ex,ey) is the expected point in img_right_remap
-	double ex, ey, p, q, r, t, d, s;
+    double ex, ey, p, q, r, t, d, s;
     // The matrices will be computed for all planes from 0cm to 100cm.
     // Obstacles higher than that have been avoided here.
     while(h < maxh)
     {
-        H.copyTo(newH);		// newH=H
+        H.copyTo(newH);     // newH=H
         //Mat H_inf = Mat::eye(3,3, CV_64F)*(float(h-ch)/float(h));
         Mat H_inf = Mat::eye(3,3, CV_64F)*(float(h)/float(h-ch));
         newH = H.mul(float(ch)/float(ch-h));
-    //  Mat H_inf = Mat::eye(3,3, CV_64F)*(float(h)/float(h-ch));
-    //	newH = H.mul(float(ch)/float(h-ch));
+        //Mat H_inf = Mat::eye(3,3, CV_64F)*(float(h)/float(h-ch));
+        //newH = H.mul(float(ch)/float(h-ch));
         // A is a 3x1 matrix which contains [x y 1] where x and y are the X
         // and Y coordinates of img_left_remap point
         Mat A = Mat(3,1, CV_64F);
@@ -294,11 +305,11 @@ int getHeight(Mat H, int ch, Point i, Point f)
 
         // All this calculation is done using the paper data.
         // Link is pasted at top of this function
-	    p = sqrt((i.x-ex)*(i.x-ex)+(i.y-ey)*(i.y-ey));
+        p = sqrt((i.x-ex)*(i.x-ex)+(i.y-ey)*(i.y-ey));
         r = sqrt((f.x-ex)*(f.x-ex)+(f.y-ey)*(f.y-ey));
         q = sqrt((i.x-f.x)*(i.x-f.x)+(i.y-f.y)*(i.y-f.y));
         t = acos((p*p+q*q-r*r)/(2*p*q))*180/CV_PI;
-   	    s = 1 - ((p*p+r*r-q*q)/(2*p*r))*((p*p+r*r-q*q)/(2*p*r));
+        s = 1 - ((p*p+r*r-q*q)/(2*p*r))*((p*p+r*r-q*q)/(2*p*r));
         d = r*100/p + t;
         
         // Height at which distance is less is considered as height of the obstacle
@@ -306,7 +317,7 @@ int getHeight(Mat H, int ch, Point i, Point f)
         {
             height = h;
             mindiff = d;
-	    test=r;
+        test=r;
         }
         h++;
     }
