@@ -7,7 +7,9 @@
 #include "opencv2/highgui/highgui.hpp"
 #include <vector>
 
-/* This header contains externs of all the Global variables that have to be access across all the files*/
+/* This header contains externs of all the Global variables
+ * that have to be access across all the files
+ */
 
 using namespace cv;
 

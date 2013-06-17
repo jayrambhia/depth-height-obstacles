@@ -8,7 +8,8 @@
 #include "opencv2/highgui/highgui.hpp"
 #include <vector>
 
-/* Refer to Global.h for in detailed explanation of the variables initialized here */
+/* Refer to Global.h for in detailed explanation of the variables
+ initialized here */
 
 using namespace cv;
 
@@ -35,8 +36,6 @@ FileStorage fs("rmaps.yml", CV_STORAGE_READ);
 
 int initialize()
 {
-
-
 	h.at<double>(0,0) = 1.0365;
 	h.at<double>(0,1) = -0.946;
 	h.at<double>(0,2) = 116.715;
@@ -47,7 +46,6 @@ int initialize()
 	h.at<double>(2,1) = 0.0012;    
 	h.at<double>(2,2) = 1;  
 
-
 	fs["rmap00"]>>rmap[0][0];	
 	fs["rmap01"]>>rmap[0][1];
 	fs["rmap10"]>>rmap[1][0];
@@ -56,5 +54,3 @@ int initialize()
 
 	return 0;
 }
-
-
