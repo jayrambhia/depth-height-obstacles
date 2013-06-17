@@ -27,20 +27,23 @@ Following are the files and their description:
 8. Arduino_Sketches/				- 		Folder containg the corresponding Arduino skecthes
 9. rmaps.ymp						-		Data collected from the calibration code
 
-USAGE: Enter the folder and run make
+### USAGE: 
 
-$ make
+Enter the folder and run make
+
+    $ make
 
 The excuetable will be named test. Just run the file.
 
-$ ./test
+    $ ./test
 
-ISSUES: ADD CALIBRATION CODES
+### ISSUES:
+ - ADD CALIBRATION CODES
 		
-Contributors:
+### Contributors:
 
-Siddarth Biyani
-Chirag Agrawal
-Abhinav Gupta
+ - Siddarth Biyani
+ - Chirag Agrawal
+ - Abhinav Gupta
 
 
